@@ -241,15 +241,3 @@ The proposed Hierarchical Adaptive Memory Retrieval (HAMR) framework offers a no
 References
 
 
-
-(Note: Detailed citations will be added based on a comprehensive review of related literature. Example references include seminal works on RAG, recent papers on MemGPT and Zep, and studies on hierarchical summarization techniques.)
-
-• Lewis, M., et al. (2020). “Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.”
-
-• Karpukhin, V., et al. (2020). “Dense Passage Retrieval for Open-Domain Question Answering.”
-
-• Brown, T., et al. (2020). “Language Models are Few-Shot Learners.”
-
-• Relevant works on hierarchical summarization and long-context LLMs.
-
-This comprehensive proposal outlines the rationale, methodology, and evaluation plan for HAMR, aiming to contribute a scalable, efficient, and coherent long-term memory system for LLMs. Would you like further modifications or additional sections to meet specific conference or journal guidelines?
