@@ -21,60 +21,60 @@ _White Paper • GitHub README Format_
 
 ## Abstract
 
-Large language models excel at short tasks yet struggle to retain long-term context.  
-Fixed context limits force developers into a dilemma: keep every past turn and inflate token usage, or drop history and risk incoherent responses.  
-Retrieval-Augmented Generation helps, but ordinary vector search is flat, static, and ignores temporal importance.
+LLMs crush bite-sized tasks, then face-plant on long hauls.  
+Fixed context is the straight-jacket: keep every token and pay through the nose, or prune history and lobotomize the model.  
+RAG patches the hole, but vanilla vector search is flat, frozen, and time-blind.
 
-**HAMR** introduces a layered memory structure that mimics human recall:
+**HAMR** bolts on a human-style memory stack:
 
-- **Short Term** – recent raw turns  
-- **Mid Term** – event-driven summaries  
-- **Long Term** – abstract knowledge graphs or fact clusters  
+- **Short Term** – raw turns, hot off the wire  
+- **Mid Term** – summaries when something actually happens  
+- **Long Term** – distilled truth, graphs, core facts  
 
-For each user query, HAMR scores every memory chunk by semantic relevance, recency decay, and user-defined importance, then assembles a lean prompt that maximizes useful information per token.  
-The result is an assistant that remembers what matters, forgets what does not, and stays within context constraints.
+Every query runs the gauntlet: score chunks on meaning, freshness, and weight, then spit out the leanest prompt per token.  
+Your assistant remembers what matters, forgets the noise, and never blows the context budget.
 
 ---
 
 ## Motivation
 
-- Modern assistants must sustain multi-day conversations, iterative workflows, and evolving knowledge bases.  
-- Token limits remain a hard boundary. Even with 100 K-token contexts, cost and latency grow rapidly.  
-- A principled memory layer is essential for practical long-horizon artificial intelligence.
+- Real assistants live for weeks, not seconds.  
+- Token ceilings are still physics; 100 K contexts just move the pain to your wallet.  
+- We need first-class memory, not another prompt engineering hack.
 
 ---
 
 ## Problem Statement
 
-1. **Context Explosion** – Long chats accumulate far more tokens than a single prompt can hold.  
-2. **Static Retrieval** – Plain vector search ranks only on similarity and ignores time or importance.  
-3. **Lossy Truncation** – Simple pruning discards valuable details with no regard for future relevance.  
+1. **Context Explosion** – Chat history balloons way past the window.  
+2. **Static Retrieval** – Cosine similarity ≠ memory; it’s blind to time and priority.  
+3. **Lossy Truncation** – Naïve trimming nukes tomorrow’s critical detail.  
 
 ---
 
 ## Related Work
 
 ### Conversation Buffer  
-**✔️** Easy to implement, preserves detail  
-**❌** Forgets older key facts
+**✔️** Dead simple, keeps everything  
+**❌** Alzheimer’s for anything beyond the cap
 
 ### Summary Memory (LangChain, Zep)  
-**✔️** Good token efficiency  
-**❌** Hallucination risk, lacks fine-grained recall
+**✔️** Cheap on tokens  
+**❌** Summaries hallucinate; fine-grained recall is gone
 
 ### Vector Retrieval  
-**✔️** Can fetch arbitrary history  
-**❌** No notion of recency or priority
+**✔️** Pulls arbitrary past chunks  
+**❌** Ignores recency and hierarchy
 
-### Long Context Transformers (e.g., Claude 100 K, Gemini)  
-**✔️** Full-text attention  
-**❌** High cost, slower, still needs filtering
+### Long Context Transformers (Claude 100 K, Gemini)  
+**✔️** End-to-end attention  
+**❌** Expensive, slower, still filter-hungry
 
 ### Knowledge Graph Memory (GraphRAG, Graphiti)  
-**✔️** Structured and queryable facts  
-**❌** Complex ingestion, slow updates  
+**✔️** Structured facts you can query  
+**❌** Heavy ingest, brittle updates  
 
-**HAMR combines the strengths of all the above approaches while mitigating their limitations.**
+**HAMR cherry-picks the wins and ditches the baggage.**
 
 ---
 
@@ -83,43 +83,43 @@ The result is an assistant that remembers what matters, forgets what does not, a
 ### Memory Flow Pipeline
 
 1. **User Query**  
-2. → Embed + extract metadata  
-3. → Search in **Memory Store**  
+2. → Embed & tag metadata  
+3. → Hit **Memory Store**  
    - **Short Term**: raw turns (TTL ≈ 50)  
    - **Mid Term**: summaries (TTL in days)  
-   - **Long Term**: persistent facts (no TTL)  
-4. → Score each memory chunk: semantic similarity, recency, importance  
-5. → Rank and trim to fit the token budget  
-6. → **Prompt Assembly Engine** combines system prompt + memory + query  
-7. → Language model generates response  
+   - **Long Term**: forever facts (no TTL)  
+4. → Score chunks: similarity, recency, importance  
+5. → Rank + trim to fit the token cap  
+6. → **Prompt Assembly Engine**: system + memory + query  
+7. → Model answers, rinse, repeat  
 
 ---
 
 ## Memory Layers
 
 ### Short Term Layer
-- Raw JSON or plain-text message objects  
-- Eviction policy: time-based decay or size cap
+- Raw JSON/plain text turns  
+- Evict by age or buffer size
 
 ### Mid Term Layer
-- Summaries triggered by intent shifts, decision points, or elapsed turns  
-- Generated via extract-then-abstract prompting to reduce hallucination
+- Summaries on intent flips, decisions, or timeouts  
+- Extract-then-abstract to curb hallucinations
 
 ### Long Term Layer
-- Knowledge-graph nodes, user profiles, persistent facts  
-- Storage: Neo4j, SQLite, or JSON document store  
-- Importance scoring: manual (pinned) or learned (reinforced when referenced)
+- Graph nodes, user profiles, immutable facts  
+- Store in Neo4j, SQLite, or plain JSON  
+- Importance: pin it or learn it
 
 ---
 
 ## Runtime Retrieval Algorithm
 
-1. **Embed** – Compute embeddings for the incoming user turn.  
-2. **Score** – For every memory chunk `c`, compute score(c) = α · similarity(c, query) + β · recency(c) + γ · importance(c) where `α`, `β`, and `γ` are tunable weights.
-3. **Rank and Filter** – Sort by score and trim until the prompt fits the budget.  
-4. **Assemble** – Add (i) recent raw turns, (ii) mid-term summaries, (iii) top long-term facts.  
-5. **Generate** – Send the prompt to the language model.  
-6. **Update Memory** – Store the new turn, create/extend summaries, and persist confirmed facts.
+1. **Embed** – Create vector for the new turn.  
+2. **Score** – `score(c) = α·sim + β·recency + γ·importance` — tune α/β/γ, change the game.  
+3. **Rank / Filter** – Keep the top until you’re under budget.  
+4. **Assemble** – Fresh raw > summary > lore.  
+5. **Generate** – Fire the prompt at the model.  
+6. **Update Memory** – Log the turn, roll summaries, cement facts.
 
 ---
 
@@ -127,16 +127,16 @@ The result is an assistant that remembers what matters, forgets what does not, a
 
 | Metric            | Description                                   |
 |-------------------|-----------------------------------------------|
-| Recall Accuracy   | Correct answers that rely on past context     |
-| Token Efficiency  | Prompt tokens per salient fact                |
-| Coherence Score   | Logical consistency across turns              |
-| Latency           | End-to-end time per request (incl. retrieval) |
+| Recall Accuracy   | Answers that hinge on past context            |
+| Token Efficiency  | Tokens burned per useful detail               |
+| Coherence Score   | Narrative sanity over time                    |
+| Latency           | Wall-clock from query to response             |
 
 ### Benchmark Suites
 
-- **Long-Term Chat** – 150-turn synthetic support conversations  
-- **Narrative QA** – Story agents queried about early plot points  
-- **Enterprise FAQ** – Multi-session customer question sequences  
+- **Long-Term Chat** – 150-turn synthetic support runs  
+- **Narrative QA** – Clip-back questions on early plot hooks  
+- **Enterprise FAQ** – Multi-session customer drills  
 
 ---
 
@@ -144,31 +144,30 @@ The result is an assistant that remembers what matters, forgets what does not, a
 
 | Phase | Deliverable                                          | Timeline |
 |-------|------------------------------------------------------|----------|
-| 0     | Prototype: FAISS + SQLite memory demo                | Week 1   |
-| 1     | Benchmark: Jupyter evaluation harness                | Week 3   |
-| 2     | Reference implementation: open-source repo & REST API| Month 2  |
-| 3     | Ecosystem: LangChain connector, Slack bot, Zep plugin| Month 3  |
-| 4     | Stretch goals: streaming input, multi-agent sync     | Month 6  |
+| 0     | Skeleton demo: FAISS + SQLite layers                 | Week 1   |
+| 1     | Bench harness: Jupyter eval scripts                  | Week 3   |
+| 2     | OSS drop: repo + REST API                            | Month 2  |
+| 3     | Integrations: LangChain, Slack bot, Zep plugin       | Month 3  |
+| 4     | Extras: streaming ingest, multi-agent gossip         | Month 6  |
 
 ---
 
 ## Risks and Mitigations
 
-| Risk                  | Impact                     | Mitigation                                          |
-|-----------------------|----------------------------|-----------------------------------------------------|
-| Summary hallucination | Incorrect long-term memory | Extractive-abstractive chains, validation rules     |
-| Retrieval latency     | Poor user experience       | Embedding cache, approximate search, async summary  |
-| Importance bias       | Pinned data dominates      | Periodic re-weighting, user feedback                |
+| Risk                  | Impact                     | Mitigation                                    |
+|-----------------------|----------------------------|-----------------------------------------------|
+| Summary hallucination | Poisoned long-term memory  | Extractive-first chain, guardrail checks      |
+| Retrieval latency     | Sluggish UX                | Embedding cache, ANN search, async summaries  |
+| Importance bias       | Pinned data dominates      | Re-weight sweeps, user feedback loops         |
 
 ---
 
 ## Call to Action
 
-HAMR invites the community to build smarter, long-lived AI systems.
+HAMR is an invite to build LLMs with a working brain.
 
-- **🛠  Try the prototype**  
-- **🐛  Open issues** – suggest scoring tweaks or connectors  
-- **💬  Join the conversation** on pushing LLMs past goldfish memory  
+- **🛠  Kick the tires** – run the demo  
+- **🐛  File issues** – tweak scoring, add stores  
+- **💬  Join us** – let’s kill goldfish memory together  
 
-> **Give language models a brain that remembers.**
-
+> **Give language models a real memory.**
