@@ -165,9 +165,3 @@ Your assistant remembers what matters, forgets the noise, and never blows the co
 ## Call to Action
 
 HAMR is an invite to build LLMs with a working brain.
-
-* **🛠  Kick the tires** — run the demo  
-* **🐛  File issues** — tweak scoring, add stores  
-* **💬  Join us** — let us kill goldfish memory together  
-
-> **Give language models a real memory.**
